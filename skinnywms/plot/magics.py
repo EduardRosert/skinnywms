@@ -91,6 +91,22 @@ class StaticLayer(datatypes.Layer):
     def __repr__(self):
         return 'StaticLayer[%s]' % (self.name,)
 
+class OceanLayer(StaticLayer):
+
+    
+
+    def render(self, context, driver, style):
+        return [driver.mcoast( 
+        map_coastline_sea_shade_colour = "#f2f2f2", 
+        map_grid =  "off", 
+        map_coastline_sea_shade =  "on", 
+        map_label = "off", 
+        map_coastline_colour =  "#f2f2f2",
+        map_coastline_resolution = 'medium')]
+
+    def __repr__(self):
+        return 'OceanLayer[%s]' % (self.name,)
+
 class UserBaseLayer(StaticLayer): 
 
     def render(self, context, driver, style):
@@ -128,6 +144,7 @@ class Plotter(datatypes.Plotter):
                 StaticLayer('background', title='Background', zindex=-99999),
                 StaticLayer('grid', title='Grid', zindex=99999),
                 StaticLayer('boundaries', title='Boundaries', zindex=99999),
+                OceanLayer('oceans', title='Oceans', zindex=99999),
                 
             ]
 
@@ -336,9 +353,15 @@ class Plotter(datatypes.Plotter):
             if width_cm < height_cm:
                 legend_font_size = "5%"
 
+
+            legend_title = layer.title
+            if  hasattr(layer, legend_title):
+                legend_title = layer.legend_title
+
+
             legend = macro.mlegend(
                 legend_title="on",
-                legend_title_text=layer.title,
+                legend_title_text=legend_title,
                 legend_display_type="continuous",
                 legend_box_mode="positional",
                 legend_only=True,
@@ -348,7 +371,7 @@ class Plotter(datatypes.Plotter):
                 legend_box_y_length=height_cm,
                 legend_box_blanking=not transparent,
                 legend_text_font_size=legend_font_size,
-                legend_text_colour="navy",
+                legend_text_colour="white",
 
             )
 

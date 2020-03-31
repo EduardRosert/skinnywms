@@ -113,9 +113,18 @@ class NetCDFField(datatypes.Field):
         # if level:
         #     self.name += '_' + str(level)
 
+
+        magics_prefix = "magics"
+
+        if  hasattr(context, magics_prefix):
+            magics_prefix = context.magics_prefix
+        
+
         self.title = getattr(ds[self.variable], 'long_name',
                              getattr(ds[self.variable], 'standard_name',
                                      self.variable))
+
+        self.legend_title = getattr(ds[self.variable], '{}_legend_title_text'.format(magics_prefix), self.title)
 
         # if level:
         #     self.title += ' @ ' + str(level)
@@ -184,6 +193,7 @@ class NetCDFReader:
     def __init__(self, context, path):
         self.path = path
         self.context = context
+        self.log.info("__init__")
 
     def get_fields(self):
         with closing(xr.open_mfdataset(self.path)) as ds:
@@ -199,6 +209,7 @@ class NetCDFReader:
         skip = set()
 
         for name in ds.data_vars:
+
             v = ds[name]
             skip.update([c for c in getattr(v, 'coordinates', '').split(' ')])
             skip.update([c for c in getattr(v, 'bounds', '').split(' ')])
@@ -210,11 +221,16 @@ class NetCDFReader:
 
             v = ds[name]
 
+
             coordinates = []
 
             # self.log.info('Scanning file: %s var=%s coords=%s', self.path, name, v.coords)
 
             info = [value for value in v.coords if value not in v.dims]
+
+            
+            has_lon = False
+            has_lat = False
 
             for coord in v.coords:
                 c = ds[coord]
@@ -224,8 +240,9 @@ class NetCDFReader:
                 standard_name = getattr(c, 'standard_name', None)
                 axis = getattr(c, 'axis', None)
                 long_name = getattr(c, 'long_name', None)
-
+                
                 use = False
+               
 
                 if standard_name in ('longitude', 'projection_x_coordinate') or (long_name == 'longitude'):
                     has_lon = True
