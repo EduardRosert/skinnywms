@@ -42,7 +42,9 @@ class TmpFile:
 
     def content(self):
         with open(self.fname, "rb") as f:
-            return f.read()
+            c = f.read()
+            os.close(f)
+        return c
 
     def cleanup(self):
         LOG.debug("Deleting %s" % self.fname)
@@ -247,7 +249,15 @@ class WMSServer:
             legend = self.plotter.layer
 
         path = self.plotter.legend(
-            self, output, format, height, legend, style, version, width, transparent,
+            self,
+            output,
+            format,
+            height,
+            legend,
+            style,
+            version,
+            width,
+            transparent,
         )
 
         return format, path
@@ -265,7 +275,10 @@ class WMSServer:
         LOG.info("LAYERS are %r", layers)
 
         variables = {
-            "service": {"title": "WMS", "url": service_url,},
+            "service": {
+                "title": "WMS",
+                "url": service_url,
+            },
             "crss": self.plotter.supported_crss,
             "geographic_bounding_box": self.plotter.geographic_bounding_box,
             "layers": layers,
